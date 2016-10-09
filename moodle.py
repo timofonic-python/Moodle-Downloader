@@ -51,14 +51,14 @@ if "My courses" not in contents:
     print "Cannot connect to moodle"
     exit(1)
 
-courses = contents.split("<h2>My courses</h2>")[1].split('<aside id="block-region-side-pre" ')[0]
+courses = contents.split("</span>My courses")[1].split('<aside id="block-region-side-pre" ')[0]
 
-regex = re.compile('<h3 class="coursename">(.*?)</h3>')
+regex = re.compile('/a></li><li>(.*?)</span><')
 course_list = regex.findall(courses)
 courses = []
 
 for course_string in course_list:
-    soup = BeautifulSoup(course_string)
+    soup = BeautifulSoup(course_string, "html.parser")
     a = soup.find('a')
     course_name = a.text
     course_link = a.get('href')
@@ -69,7 +69,7 @@ for course in courses:
         os.mkdir(root_directory+course[0])
     response1 = urllib2.urlopen(course[1])
     scrap = response1.read()
-    soup = BeautifulSoup(scrap)
+    soup = BeautifulSoup(scrap,"html.parser")
 
     course_links = soup.find(class_="course-content").find(class_="weeks").find_all('a')
 
@@ -101,6 +101,10 @@ for course in courses:
             webFile = urllib2.urlopen(href)
             url = current_dir + webFile.geturl().split('/')[-1].split('?')[0]
             file_name = urllib.unquote(url).decode('utf8')
+            #do not install webpages (videos)
+            if ".php" in file_name:
+                print "Not going to install this file", file_name
+                continue
             if os.path.isfile(file_name):
                 print "File found : ", file_name
                 continue
