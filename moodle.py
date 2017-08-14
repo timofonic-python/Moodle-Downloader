@@ -5,21 +5,13 @@ import os
 import os.path
 import re
 
-from ConfigParser import ConfigParser
-
 from bs4 import BeautifulSoup
 
-conf = ConfigParser()
-project_dir = os.path.dirname(os.path.abspath(__file__))
-conf.read(os.path.join(project_dir, 'config.ini'))
-
-root_directory = conf.get("dirs", "root_dir")
-username = conf.get("auth", "username")
-password = conf.get("auth", "password")
-authentication_url = conf.get("auth", "url").strip('\'"')
+initial_url = "AQUI LA INICIAL"
 
 # Store the cookies and create an opener that will hold them
 cj = cookielib.CookieJar()
+cj.load("AQUI LO PATH")
 opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
 
 # Add our headers
@@ -29,18 +21,8 @@ opener.addheaders = [('User-agent', 'Moodle-Crawler')]
 # we just made, but you can also just call opener.open() if you want)
 urllib2.install_opener(opener)
 
-
-# Input parameters we are going to send
-payload = {
-    'username': username,
-    'password': password
-}
-
-# Use urllib to encode the payload
-data = urllib.urlencode(payload)
-
 # Build our Request object (supplying 'data' makes it a POST)
-req = urllib2.Request(authentication_url, data)
+req = urllib2.Request(initial_url, {})
 
 # Make the request and read the response
 response = urllib2.urlopen(req)
@@ -79,21 +61,9 @@ for course in courses:
 
         # Checking only resources... Ignoring forum and folders, etc
         if "resource" in href:
-            cj1 = cookielib.CookieJar()
-            opener1 = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj1))
-
-            # Add our headers
-            opener1.addheaders = [('User-agent', 'Moodle-Crawler')]
-
-            # Install our opener (note that this changes the global opener to the one
-            # we just made, but you can also just call opener.open() if you want)
-            urllib2.install_opener(opener1)
-
-            # The action/ target from the form
-            authentication_url1 = href
 
             # Build our Request object (supplying 'data' makes it a POST)
-            req1 = urllib2.Request(authentication_url, data)
+            req1 = urllib2.Request(href, {})
 
             # Make the request and read the response
             resp = urllib2.urlopen(req1)
